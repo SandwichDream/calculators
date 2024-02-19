@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>annuity</title>
+  <style>
+    body {
+      padding: 0 50px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    #inputsField {
+      display: flex;
+      flex-direction: column;
+      width: 300px;
+      position: relative;
+      left: -50px;
+      overflow: hidden;
+      opacity: 0;
+      transition: left 1s, opacity 1s ease;
+    }
+
+    #inputsField.anim {
+      left: 0;
+      opacity: 1;
+    }
+
+    #inputsField>input {
+      margin-bottom: 10px;
+    }
+
+    #totalAmountDiv {
+      margin: 15px 0;
+    }
+
+    button {
+      padding: 15px;
+    }
+
+    #payment-table {
+      border: 1px solid #000;
+    }
+
+    #payment-table > .header, #payment-table > .body > .br {
+      display: grid;
+      grid-template-columns: 1fr 5px 5fr 5px 5fr 5px 5fr 5px 5fr;
+    }
+
+    #payment-table > .header {
+      background: #ccc;
+      border-bottom: 1px solid #000;
+    }
+
+    #payment-table > .body > .br:not(:last-child) {
+      border-bottom: 1px solid #000;
+    }
+
+    #payment-table > .body {
+      overflow: hidden;
+      height: 0;
+      transition: height 1s;
+    }
+
+    .partition {
+      width: 5px;
+      border-left: 1px solid black;
+      border-right: 1px solid black;
+      background: #ccc;
+    }
+
+    #payment-table .he, #payment-table .be, #payment-table .partition {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #payment-table .he, #payment-table .be {
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Кредитний калькулятор з таблицею</h1>
+
+  <div id="inputsField">
+    <label for="loanAmount">Сума кредиту:</label>
+    <input type="number" id="loanAmount" placeholder="Сума кредиту" required>
+
+    <label for="loanTerm">Термін кредиту (в місяцях):</label>
+    <input type="number" id="loanTerm" placeholder="Термін кредиту" required>
+
+    <label for="interestRate">Річна процентна ставка (%):</label>
+    <input type="number" id="interestRate" placeholder="Процентна ставка" required>
+  </div>
+
+  <button onclick="calculateLoan()">Розрахувати</button>
+
+  <div id="totalAmountDiv">Сума повного погашення: $<span id="totalAmount">0.00</span></div>
+
+  <h2>Таблиця платежів:</h2>
+  <div id="payment-table">
+    <div class="header">
+      <div class="he">Місяць</div>
+      <div class="partition"></div>
+      <div class="he">Сума платежу</div>
+      <div class="partition"></div>
+      <div class="he">Тіло кредиту</div>
+      <div class="partition"></div>
+      <div class="he">Відсотки</div>
+      <div class="partition"></div>
+      <div class="he">Залишок боргу</div>
+    </div>
+    <div class="body"></div>
+  </div>
+  
+  <script>
+    window.onload = function() {
+      document.getElementById('inputsField').classList.add('anim');
+    };
+
+    function calculateLoan() {
+      const loanAmount = parseFloat(document.getElementById('loanAmount').value);
+      const loanTerm = parseFloat(document.getElementById('loanTerm').value);
+      const interestRate = parseFloat(document.getElementById('interestRate').value) / 100 / 12;
+      
+      const monthlyPayment = (loanAmount * interestRate) / (1 - Math.pow(1 + interestRate, -loanTerm));
+      
+      let remainingBalance = loanAmount;
+      let totalAmount = 0;
+      let elHeight = 0;
+      const paymentTableBody = document.querySelector('#payment-table > .body');
+      paymentTableBody.textContent = '';
+
+      for (let month = 1; month <= loanTerm; month++) {
+        const interestPayment = remainingBalance * interestRate;
+        const principalPayment = monthlyPayment - interestPayment;
+
+        remainingBalance -= principalPayment;
+
+        totalAmount += monthlyPayment;
+        elHeight += 29;
+
+        const newRow = document.createElement('div');
+        newRow.classList.add("br")
+        newRow.innerHTML = `
+          <div class="be">${month}</div>
+          <div class="partition"></div>
+          <div class="be">$${monthlyPayment.toFixed(2)}</div>
+          <div class="partition"></div>
+          <div class="be">$${principalPayment.toFixed(2)}</div>
+          <div class="partition"></div>
+          <div class="be">$${interestPayment.toFixed(2)}</div>
+          <div class="partition"></div>
+          <div class="be">$${Math.abs(remainingBalance).toFixed(2)}</div>
+        `;
+
+        paymentTableBody.appendChild(newRow);
+      }
+
+      document.getElementById("totalAmount").textContent = totalAmount.toFixed(2);
+
+      paymentTableBody.style.height = elHeight - 1 + "px";
+    }
+  </script>
+
+</body>
+</html>

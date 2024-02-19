@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Кредитний калькулятор зі зменшенням відсотків</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Кредитний калькулятор зі зменшенням відсотків</h1>
+
+  <label for="loanAmount">Сума кредиту:</label>
+  <input type="number" id="loanAmount" placeholder="Сума кредиту" required>
+
+  <label for="loanTerm">Термін кредиту (в місяцях):</label>
+  <input type="number" id="loanTerm" placeholder="Термін кредиту" required>
+
+  <label for="interestRate">Річна процентна ставка (%):</label>
+  <input type="number" id="interestRate" placeholder="Процентна ставка" required>
+
+  <button onclick="calculateLoan()">Розрахувати</button>
+
+  <h2>Таблиця платежів:</h2>
+  <table id="paymentTable">
+    <thead>
+      <tr>
+        <th>Місяць</th>
+        <th>Сума платежу</th>
+        <th>Тіло кредиту</th>
+        <th>Відсотки</th>
+        <th>Залишок боргу</th>
+      </tr>
+    </thead>
+    <tbody id="paymentTableBody"></tbody>
+  </table>
+
+  <script>
+    let loanAmount, loanTerm, interestRate, monthlyPayment, remainingBalance;
+
+    function calculateMonthlyPayment() {
+      monthlyPayment = (loanAmount / loanTerm) + (remainingBalance * interestRate);
+    }
+
+    function updateBalanceAndInterest() {
+      const interestPayment = remainingBalance * interestRate;
+      const principalPayment = monthlyPayment - interestPayment;
+      remainingBalance -= principalPayment;
+    }
+
+    function createTable() {
+      const tableBody = document.getElementById("paymentTableBody");
+      tableBody.innerHTML = "";
+
+      for (let month = 1; month <= loanTerm; month++) {
+        calculateMonthlyPayment();
+        updateBalanceAndInterest();
+
+        const newRow = document.createElement("tr");
+        newRow.innerHTML = `
+          <td>${month}</td>
+          <td>$${monthlyPayment.toFixed(2)}</td>
+          <td>$${(loanAmount / loanTerm).toFixed(2)}</td>
+          <td>$${(monthlyPayment - loanAmount / loanTerm).toFixed(2)}</td>
+          <td>$${remainingBalance.toFixed(2)}</td>
+        `;
+
+        tableBody.appendChild(newRow);
+      }
+    }
+
+    function calculateLoan() {
+      loanAmount = parseFloat(document.getElementById("loanAmount").value);
+      loanTerm = parseFloat(document.getElementById("loanTerm").value);
+      interestRate = parseFloat(document.getElementById("interestRate").value) / 100 / 12;
+      remainingBalance = loanAmount;
+
+      createTable();
+    }
+  </script>
+
+</body>
+</html>
